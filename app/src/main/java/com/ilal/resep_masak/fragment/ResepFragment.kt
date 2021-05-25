@@ -1,33 +1,26 @@
 package com.ilal.resep_masak.fragment
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.ilal.resep_masak.R
+import com.ilal.resep_masak.fragment.detail.ResepDetailFragment
+import com.ilal.resep_masak.model.Result
+import com.ilal.resep_masak.utilities.ResepData
+import kotlinx.android.synthetic.main.fragment_resep.*
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [ResepFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class ResepFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
+    lateinit var resepViewModel: ResepViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+        Log.d("ResepFragment", "onCreate dipanggil")
     }
 
     override fun onCreateView(
@@ -35,26 +28,37 @@ class ResepFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
+        Log.d("ResepFragment", "onCreateView dipanggil")
+        resepViewModel = ViewModelProvider(this).get(ResepViewModel::class.java)
         return inflater.inflate(R.layout.fragment_resep, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        rvResep.setHasFixedSize(true)
+        rvResep.layoutManager = LinearLayoutManager(context)
+        resepViewModel.getDataFromApi(rvResep, object : ResepViewModel.OnAdapterListener {
+            override fun onClick(item: Result) {
+                ResepData.fill(item)
+                activity?.supportFragmentManager
+                    ?.beginTransaction()
+                    ?.replace(R.id.container, ResepDetailFragment())
+                    ?.addToBackStack(null)
+                    ?.commit()
+            }
+        })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("ResepFragment", "onDestroy dipanggil")
+    }
+
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ResepFragment.
-         */
-        // TODO: Rename and change types and number of parameters
+
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
-            ResepFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+            ResepFragment()
     }
 }
